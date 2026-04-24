@@ -45,6 +45,91 @@ def get_embeddings_with_pos(text):
 
   return embeddings
 
+def get_mapping_dict(mapping):
+  try:
+    rec = {}
+
+    for i in mapping.replace("\n", ";").split(";"):
+      if len(i.split(":")) <= 1:
+        continue
+      key = i.split(":")[0].strip()
+      value = i.split(":")[1].split(",")
+
+      rec[key] = []
+
+      for v in value:
+        start = int(v.strip().split("-")[0])
+        end = int(v.strip().split("-")[1])
+
+        rec[key].append([start, end])
+    return rec
+  except Exception as e:
+    print("mapping", mapping)
+
+def create_graph_object(graph_str, target, var_mapping, embedding, label):
+  # print("graph_str")
+  # print(graph_str, target, var_mapping, embedding, )
+  penman_graph = penman.decode(graph_str)
+
+  instances = penman_graph.instances()
+  edges = penman_graph.edges()
+
+  node2index = {}
+  index2node = {}
+
+  mapping_rec = get_mapping_dict(var_mapping)
+
+  node_data = torch.tensor([])
+  curr_index = 0
+
+  target_index = -1
+  edges_rec = []
+
+  for i in range(len(instances)):
+    # print("instance", instances[i])
+    s = instances[i].source
+
+    mapping_indices = mapping_rec.get(s, [[0,0]])
+
+    temp_data = torch.tensor([])
+
+    for mp_i in mapping_indices:
+      start, end = mp_i
+
+      if start != 0:
+        start -= 1
+        k = embedding[start:end]
+        temp_data = torch.cat((temp_data, torch.sum(k, dim=0).unsqueeze(0)))
+      else:
+        temp_data = torch.cat((temp_data, torch.sum(embedding, dim=0).unsqueeze(0)))
+
+    # if start != 0:
+    #   start -= 1
+    #   k = embedding[start:end]
+    #   node_data = torch.cat((node_data, torch.sum(k, dim=0).unsqueeze(0)))
+    # else:
+    node_data = torch.cat((node_data, torch.sum(temp_data, dim=0).unsqueeze(0)))
+
+    node2index[s] = curr_index
+    curr_index += 1
+
+    if s == target:
+      target_index = curr_index - 1
+  
+  for e in edges:
+    # print(e)
+    edge_source = e.source
+    edge_target = e.target
+    edges_rec.append([node2index[edge_source], node2index[edge_target]])
+    edges_rec.append([node2index[edge_target], node2index[edge_source]])
+
+  # edges_rec.append([target_index, node2index['aspect']])
+  edges_data = torch.tensor(edges_rec).t().contiguous()
+  # print("node2index", node2index)
+  # print("node data", node_data.shape)
+  return Data(x=node_data, edge_index=edges_data, y=label, target_node=torch.tensor(node2index[target]))
+
+
 def create_graph_penman(graph_str, var_mapping, target, label):
   embeddings_with_pos = get_embeddings_with_pos(graph_str)
 
