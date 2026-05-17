@@ -66,7 +66,7 @@ def get_mapping_dict(mapping):
   except Exception as e:
     print("mapping", mapping)
 
-def create_graph_object(graph_str, target, var_mapping, embedding, label):
+def create_graph_object(graph_str, target, var_mapping, embedding, label, single_label=None):
   # print("graph_str")
   # print(graph_str, target, var_mapping, embedding, )
   penman_graph = penman.decode(graph_str)
@@ -127,7 +127,7 @@ def create_graph_object(graph_str, target, var_mapping, embedding, label):
   edges_data = torch.tensor(edges_rec).t().contiguous()
   # print("node2index", node2index)
   # print("node data", node_data.shape)
-  return Data(x=node_data, edge_index=edges_data, y=label, target_node=torch.tensor(node2index[target]))
+  return Data(x=node_data, edge_index=edges_data, y=label, target_node=torch.tensor(node2index[target]), single_y=single_label)
 
 
 def create_graph_penman(graph_str, var_mapping, target, label):

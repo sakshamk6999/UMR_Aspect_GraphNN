@@ -6,13 +6,13 @@ from Preprocess import create_graph_penman, create_graph_object
 import json
 import pandas as pd
 from tqdm import tqdm
+from conf import child_to_parent, label_to_node, node_to_label, parent_to_child
 
-class MyOwnDataset(Dataset):
-    def __init__(self, root, split='train', transform=None, pre_transform=None, pre_filter=None):
+class HeirarchicalDataset(Dataset):
+    def __init__(self, root, split='train', **kwargs):
         self.split = split
         print("the split is", self.split)
-        super().__init__(root, transform, pre_transform, pre_filter)
-        
+        super().__init__(root, **kwargs)
 
     @property
     def raw_file_names(self):
@@ -20,23 +20,13 @@ class MyOwnDataset(Dataset):
 
     @property
     def processed_file_names(self):
-        return os.listdir(self.processed_dir)
         # return "no.pt"
+        return "data_test_0.pt"
 
     def download(self):
         pass
 
     def process(self):
-        labelMapping = {
-            "process": 0,
-            "performance": 1,
-            "endeavor": 2,
-            "habitual": 3,
-            "state": 4,
-            "activity": 5,
-            "none": 6
-        }
-
         idx = 0
 
         train_data = self.raw_paths[0]
@@ -67,13 +57,8 @@ class MyOwnDataset(Dataset):
 
         with tqdm(total=len(keys_in_interest)) as pbar:
             for d in keys_in_interest:
-                # df_id = list(d.keys())[0]
-                df_id = d
 
-                # if df_id not in keys_in_interest:
-                #     pbar.update(1)
-                #     continue
-                # df_id = d
+                df_id = d
 
                 emb = None
 
@@ -92,13 +77,42 @@ class MyOwnDataset(Dataset):
                     aspect_label = df['adjudicated']
                     mapping_string = df['alignment']
                     
-                    labels = F.one_hot(torch.tensor(labelMapping.get(aspect_label.lower(), 6)), num_classes=7)
+                    labels = torch.zeros(1, 11)
+                    actual_label = label_to_node['none']
 
-                    labels = torch.cat((labels, torch.tensor([1 if aspect_label == "performance" or aspect_label == "endeavor" else 0])), dim=0)
-                    labels = torch.cat((labels, torch.tensor([1 if aspect_label == "performance" else 0])), dim=0)
+                    if aspect_label == "performance":
+                        cols_to_fill = [label_to_node['performance'], label_to_node['perfective'], label_to_node['process'], label_to_node['aspect']]
+                        labels[:,cols_to_fill] = 1
+                        actual_label = label_to_node['performance']
+                    elif aspect_label == "endeavor":
+                        cols_to_fill = [label_to_node['endeavor'], label_to_node['perfective'], label_to_node['atelic'], label_to_node['process'], label_to_node['imperfective'], label_to_node['aspect']]
+                        labels[:,cols_to_fill] = 1
+                        actual_label = label_to_node['endeavor']
+                    elif aspect_label == "activity":
+                        cols_to_fill = [label_to_node['activity'], label_to_node['atelic'], label_to_node['process'], label_to_node['imperfective'], label_to_node['aspect']]
+                        labels[:,cols_to_fill] = 1
+                        actual_label = label_to_node['activity']
+                    elif aspect_label == "process":
+                        cols_to_fill = [label_to_node['process'], label_to_node['aspect']]
+                        labels[:,cols_to_fill] = 1
+                        actual_label = label_to_node['process']
+                    elif aspect_label == "state":
+                        cols_to_fill = [label_to_node['state'], label_to_node['imperfective'], label_to_node['aspect']]
+                        labels[:,cols_to_fill] = 1
+                        actual_label = label_to_node['state']
+                    elif aspect_label == "habitual":
+                        cols_to_fill = [label_to_node['habitual'], label_to_node['aspect']]
+                        labels[:,cols_to_fill] = 1
+                        actual_label = label_to_node['habitual']
+                    else:
+                        cols_to_fill = [label_to_node['none']]
+                        labels[:,cols_to_fill] = 1
+
+                    # print("aspect label", aspect_label)
+                    # print("labels", labels)
 
                     try:
-                        dataGraph = create_graph_object(graph_str, target_variable, mapping_string, torch.tensor(emb[df_id]), labels)
+                        dataGraph = create_graph_object(graph_str, target_variable, mapping_string, torch.tensor(emb[df_id]), labels, torch.tensor(actual_label))
                     except Exception as e:
                         print("df_id", df_id)
                         print("Exception", e)
@@ -152,6 +166,6 @@ class MyOwnDataset(Dataset):
     def get(self, idx):
         data = torch.load(os.path.join(self.processed_dir, f'data_{self.split}_{idx}.pt'), weights_only=False)
         return data
-
+    
 if __name__ == "__main__":
-    dataset = MyOwnDataset(root="./UMRDataset")
+    dataset = HeirarchicalDataset(root="./UMRDataset")

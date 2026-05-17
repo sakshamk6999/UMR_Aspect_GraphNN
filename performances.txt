@@ -1,0 +1,105 @@
+hidden_channel=512
+hidden=1
+lr=1.3e-5
+lambda=0.71
+
+test_macro_f1 0.31172024365301676
+test_micro_f1 0.4482758620689655
+test_weighted_f1 0.41372334374362774
+test_completion_macro_f1 0.5318003913894325
+test_completion_micro_f1 0.7471264367816092
+test_result_macro_f1 0.6619676214196761
+test_result_micro_f1 0.7758620689655172
+
+test_macro_f1 (0.3665197476449745, 0.3319522868435912, 0.31172024365301676, None)
+test_micro_f1 (0.4482758620689655, 0.4482758620689655, 0.4482758620689655, None)
+test_weighted_f1 (0.4427390811551272, 0.4482758620689655, 0.41372334374362774, None)
+
+=================================================================================================
+hidden_channel=512
+hidden=2
+lr=3.5e-6
+lambda=0.508
+
+test_macro_f1 (0.23251048397675964, 0.21281055900621118, 0.18301729913163106, None)
+test_micro_f1 (0.3850574712643678, 0.3850574712643678, 0.3850574712643678, None)
+/Users/khatwans/Downloads/RuleSpect/newEnv/lib/python3.13/site-packages/sklearn/metrics/_classification.py:1833: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, f"{metric.capitalize()} is", result.shape[0])
+test_weighted_f1 (0.3905579627467584, 0.3850574712643678, 0.32371632341235423, None)
+test_completion_macro_f1 0.5279435702658708
+test_completion_micro_f1 0.7413793103448276
+test_result_macro_f1 0.5396825396825397
+test_result_micro_f1 0.7586206896551724
+
+=================================================================================================
+hidden_channel=1024
+hidden=1
+lr=5.5e-6
+lambda=3.2e-4
+
+/Users/khatwans/Downloads/RuleSpect/newEnv/lib/python3.13/site-packages/sklearn/metrics/_classification.py:1833: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, f"{metric.capitalize()} is", result.shape[0])
+test_macro_f1 (0.49937343358395986, 0.27393421795595707, 0.266305972938626, None)
+test_micro_f1 (0.4827586206896552, 0.4827586206896552, 0.4827586206896552, None)
+/Users/khatwans/Downloads/RuleSpect/newEnv/lib/python3.13/site-packages/sklearn/metrics/_classification.py:1833: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, f"{metric.capitalize()} is", result.shape[0])
+test_weighted_f1 (0.550564629965719, 0.4827586206896552, 0.4428884949205146, None)
+test_completion_macro_f1 0.43242724656220016
+test_completion_micro_f1 0.7068965517241379
+test_result_macro_f1 0.42
+test_result_micro_f1 0.7241379310344828
+
+=================================================================================================
+hidden_channel=1024
+hidden=2
+lr=6.6e-6
+lambda=0.0018
+
+/Users/khatwans/Downloads/RuleSpect/newEnv/lib/python3.13/site-packages/sklearn/metrics/_classification.py:1833: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, f"{metric.capitalize()} is", result.shape[0])
+test_macro_f1 (0.23059298681991539, 0.24218426501035198, 0.21123508443325625, None)
+test_micro_f1 (0.4425287356321839, 0.4425287356321839, 0.4425287356321839, None)
+/Users/khatwans/Downloads/RuleSpect/newEnv/lib/python3.13/site-packages/sklearn/metrics/_classification.py:1833: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, f"{metric.capitalize()} is", result.shape[0])
+test_weighted_f1 (0.406430586503329, 0.4425287356321839, 0.3803485485333241, None)
+test_completion_macro_f1 0.4161073825503356
+test_completion_micro_f1 0.7126436781609196
+test_result_macro_f1 0.42
+test_result_micro_f1 0.7241379310344828
+
+====================================================
+hidden_channel=256
+hidden=1
+lr=1.28e-6
+lambda=0.408
+
+/Users/khatwans/Downloads/RuleSpect/newEnv/lib/python3.13/site-packages/sklearn/metrics/_classification.py:1833: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, f"{metric.capitalize()} is", result.shape[0])
+test_macro_f1 (0.280843422722092, 0.2546536796536797, 0.24668952276119543, None)
+test_micro_f1 (0.4482758620689655, 0.4482758620689655, 0.4482758620689655, None)
+/Users/khatwans/Downloads/RuleSpect/newEnv/lib/python3.13/site-packages/sklearn/metrics/_classification.py:1833: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, f"{metric.capitalize()} is", result.shape[0])
+test_weighted_f1 (0.4128553635521042, 0.4482758620689655, 0.4147276090319436, None)
+test_completion_macro_f1 0.4769427566357531
+test_completion_micro_f1 0.7298850574712644
+test_result_macro_f1 0.5816081168259927
+test_result_micro_f1 0.764367816091954
+
+
+============================================
+hidden_channel=256
+hidden=2
+lr=1.28e-6
+lambda=0.408
+
+/Users/khatwans/Downloads/RuleSpect/newEnv/lib/python3.13/site-packages/sklearn/metrics/_classification.py:1833: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, f"{metric.capitalize()} is", result.shape[0])
+test_macro_f1 (0.21515176925357235, 0.22445652173913042, 0.20119975262832404, None)
+test_micro_f1 (0.40804597701149425, 0.40804597701149425, 0.40804597701149425, None)
+/Users/khatwans/Downloads/RuleSpect/newEnv/lib/python3.13/site-packages/sklearn/metrics/_classification.py:1833: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, f"{metric.capitalize()} is", result.shape[0])
+test_weighted_f1 (0.3676010955740394, 0.40804597701149425, 0.3593188803533632, None)
+test_completion_macro_f1 0.4161073825503356
+test_completion_micro_f1 0.7126436781609196
+test_result_macro_f1 0.5105185909980431
+test_result_micro_f1 0.735632183908046

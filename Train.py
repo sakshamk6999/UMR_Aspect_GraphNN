@@ -3,9 +3,11 @@ from GraphModel import GCNModel
 import torch
 from torch_geometric.loader import DataLoader
 import numpy as np
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, confusion_matrix, ConfusionMatrixDisplay
 from torcheval.metrics.functional import multiclass_f1_score
 from torch.optim.lr_scheduler import CosineAnnealingLR
+from sklearn.metrics import precision_recall_fscore_support
+import matplotlib.pyplot as plt
 
 USE_CUDA = torch.cuda.is_available()
 device = torch.device("cuda" if USE_CUDA else "cpu")
@@ -43,11 +45,11 @@ class ImplicationRule(torch.nn.Module):
       # print("shape", output.shape)
       # print("probs", torch.sigmoid(output.squeeze(0))[self.predicate], torch.sigmoid(output.squeeze(0))[self.conclusion])
       if self.condition:
-        implication = torch.clamp(torch.sigmoid(output.squeeze(0))[self.predicate] - torch.sigmoid(output.squeeze(0))[self.conclusion], max=0)
+        implication = torch.clamp((1 - torch.sigmoid(output.squeeze(0))[self.predicate]) + torch.sigmoid(output.squeeze(0))[self.conclusion], max=1.0)
 
         return implication
       else:
-        implication = torch.clamp(torch.sigmoid(output.squeeze(0))[self.predicate] - 1 + torch.sigmoid(output.squeeze(0))[self.conclusion], max=0)
+        implication = torch.clamp((1 - torch.sigmoid(output.squeeze(0))[self.predicate]) + (1 - torch.sigmoid(output.squeeze(0))[self.conclusion]), max=1.0)
         return implication
       
 class CustomLossRules(torch.nn.Module):
@@ -83,7 +85,7 @@ class CustomLossRules(torch.nn.Module):
           implication_loss += rule(output)
         # loss += rule(output)
       # print("implication loss", loss - ce_loss)
-      return loss + self.hyperparam * (completion_loss + result_loss + implication_loss), {
+      return loss +  completion_loss + result_loss + (self.hyperparam * implication_loss), {
           "cross_entropy": loss,
           "completion_loss": completion_loss,
           "result_loss": result_loss,
@@ -189,22 +191,25 @@ def train(model, dataloader, val_dataloader, optimizer, customLoss):
     f1_micro = f1_score(torch.argmax(training_values, dim=1), training_predictions, average='micro')
     f1_weighted = f1_score(torch.argmax(training_values, dim=1), training_predictions, average='weighted')
 
-    # print("macro_f1", f1_macro)
-    # print("micro_f1", f1_micro)
-    # print("weighted_f1", f1_weighted)
+    print("macro_f1", precision_recall_fscore_support(torch.argmax(training_values, dim=1), training_predictions, average='macro'))
+    print("micro_f1", precision_recall_fscore_support(torch.argmax(training_values, dim=1), training_predictions, average='micro'))
+    print("weighted_f1", precision_recall_fscore_support(torch.argmax(training_values, dim=1), training_predictions, average='micro'))
 
     completion_f1_macro = f1_score(completion_values, np.round(completion_predictions), average='macro')
     completion_f1_micro = f1_score(completion_values, np.round(completion_predictions), average='micro')
-    # completion_f1_weighted = f1_score(completion_values, np.round(completion_predictions), average='weighted')
-    # print("completion_macro_f1", completion_f1_macro)
-    # print("completion_micro_f1", completion_f1_micro)
+    completion_f1_weighted = f1_score(completion_values, np.round(completion_predictions), average='weighted')
+    print("completion_macro_f1", completion_f1_macro)
+    print("completion_micro_f1", completion_f1_micro)
+    print("completion_weighted_f1", completion_f1_weighted)
 
     result_f1_macro = f1_score(result_values, np.round(result_predictions), average='macro')
     result_f1_micro = f1_score(result_values, np.round(result_predictions), average='micro')
-    # print("result_macro_f1", result_f1_macro)
-    # print("result_micro_f1", result_f1_micro)
+    result_f1_weighted = f1_score(result_values, np.round(result_predictions), average='weighted')
+    print("result_macro_f1", result_f1_macro)
+    print("result_micro_f1", result_f1_micro)
+    print("result_f1_weighted", result_f1_weighted)
 
-    # print("validation")
+    print("validation")
 
     val_predictions = []
     val_values = []
@@ -250,22 +255,28 @@ def train(model, dataloader, val_dataloader, optimizer, customLoss):
     val_f1_micro = f1_score(torch.argmax(val_values, dim=1), val_predictions, average='micro')
     val_f1_weighted = f1_score(torch.argmax(val_values, dim=1), val_predictions, average='weighted')
 
-    # print("val_macro_f1", val_f1_macro)
-    # print("val_micro_f1", val_f1_micro)
-    # print("val_weighted_f1", val_f1_weighted)
+    print("val_macro_f1", val_f1_macro)
+    print("val_micro_f1", val_f1_micro)
+    print("val_weighted_f1", val_f1_weighted)
     val_completion_f1_macro = f1_score(val_completion_values, np.round(val_completion_predictions), average='macro')
     val_completion_f1_micro = f1_score(val_completion_values, np.round(val_completion_predictions), average='micro')
-    # print("val_completion_macro_f1", val_completion_f1_macro)
-    # print("val_completion_micro_f1", val_completion_f1_micro)
+    val_completion_f1_weighted = f1_score(val_completion_values, np.round(val_completion_predictions), average='weighted')
+    print("val_completion_macro_f1", val_completion_f1_macro)
+    print("val_completion_micro_f1", val_completion_f1_micro)
+    print("val_completion_weighted_f1", val_completion_f1_weighted)
 
     val_result_f1_macro = f1_score(val_result_values, np.round(val_result_predictions), average='macro')
     val_result_f1_micro = f1_score(val_result_values, np.round(val_result_predictions), average='micro')
-    # print("val_result_macro_f1", val_result_f1_macro)
-    # print("val_result_micro_f1", val_result_f1_micro)
+    val_result_f1_weighted = f1_score(val_result_values, np.round(val_result_predictions), average='weighted')
+    print("val_result_macro_f1", val_result_f1_macro)
+    print("val_result_micro_f1", val_result_f1_micro)
+    print("val_result_weighted_f1", val_result_f1_weighted)
 
     return {
     'train_macro_f1': f1_macro,
-    'val_macro_f1': val_f1_macro
+    'val_macro_f1': val_f1_macro,
+    'val_micro_f1': val_f1_micro,
+    'val_weighted_f1': val_f1_weighted,
     }
 
 def main():
@@ -285,13 +296,18 @@ def main():
   print("test summary")
   print(get_dataset_summary(test_dataloader))
 
-  model = GCNModel(hidden_channels=256, num_hidden_layers=1).to(device)
+  # model = GCNModel(hidden_channels=512, num_hidden_layers=1).to(device)
+  model = GCNModel(hidden_channels=512, num_hidden_layers=1).to(device)
   total_params = sum(p.numel() for p in model.parameters())
 
   print("Total params are", total_params)
 
-  optimizer = torch.optim.AdamW(model.parameters(), lr=2.8e-7)
-  customLoss = CustomLossRules(hyperparam=0.0038).to(device)
+  optimizer = torch.optim.AdamW(model.parameters(), lr=5.9e-6)
+  customLoss = CustomLossRules(hyperparam=0.003).to(device)
+
+  # optimizer = torch.optim.AdamW(model.parameters(), lr=1.3e-5)
+  # customLoss = CustomLossRules(hyperparam=0.71).to(device)
+
   scheduler = CosineAnnealingLR(optimizer, T_max=15)
 
   val_scores = []
@@ -464,7 +480,7 @@ def main():
     for test_data in test_dataloader:
       test_data = test_data.to(device)
       tensor_index = torch.where(test_data.target_node > 0)
-      # print(data.input_ids)
+      # print(test_data)
       out = model(test_data.x, test_data.edge_index, test_data.target_node)
 
       test_predictions.append(out[:, :7].squeeze(0))
@@ -497,9 +513,9 @@ def main():
     test_f1_micro = f1_score(torch.argmax(test_values, dim=1), test_predictions, average='micro')
     test_f1_weighted = f1_score(torch.argmax(test_values, dim=1), test_predictions, average='weighted')
 
-    print("test_macro_f1", test_f1_macro)
-    print("test_micro_f1", test_f1_micro)
-    print("test_weighted_f1", test_f1_weighted)
+    print("test_macro_f1", precision_recall_fscore_support(torch.argmax(test_values, dim=1), test_predictions, average='macro'))
+    print("test_micro_f1", precision_recall_fscore_support(torch.argmax(test_values, dim=1), test_predictions, average='micro'))
+    print("test_weighted_f1", precision_recall_fscore_support(torch.argmax(test_values, dim=1), test_predictions, average='weighted'))
     test_completion_f1_macro = f1_score(test_completion_values, np.round(test_completion_predictions), average='macro')
     test_completion_f1_micro = f1_score(test_completion_values, np.round(test_completion_predictions), average='micro')
     print("test_completion_macro_f1", test_completion_f1_macro)
@@ -509,6 +525,25 @@ def main():
     test_result_f1_micro = f1_score(test_result_values, np.round(test_result_predictions), average='micro')
     print("test_result_macro_f1", test_result_f1_macro)
     print("test_result_micro_f1", test_result_f1_micro)
+
+    class_names = ["process", "performance", "endeavor", "habitual", "state", "activity", "none"]
+    y_true = torch.argmax(test_values, dim=1).cpu().numpy()
+    y_pred = test_predictions.cpu().numpy()
+
+    cm = confusion_matrix(y_true, y_pred, labels=list(range(len(class_names))))
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=class_names)
+    fig, ax = plt.subplots(figsize=(9, 9))
+    disp.plot(ax=ax, colorbar=True, xticks_rotation=45)
+    ax.set_title("Test Set Confusion Matrix")
+    plt.tight_layout()
+    plt.savefig("confusion_matrix.png", dpi=150)
+    plt.close(fig)
+    print("Confusion matrix saved to confusion_matrix.png")
+
+    import pandas as pd
+    cm_df = pd.DataFrame(cm, index=class_names, columns=class_names)
+    cm_df.to_csv("confusion_matrix.csv")
+    print("Confusion matrix saved to confusion_matrix.csv")
 
   for epoch in range(1, 20):
     print("Epoch", epoch)
